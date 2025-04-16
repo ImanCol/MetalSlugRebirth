@@ -7,7 +7,7 @@ namespace AssemblyLoader
     public class AssemblyLoader
     {
         private const string DirectoryName = "assembly";
-        private const string DllName = "Payload.dll";
+        private const string DllName = "MSLoader.dll";
 
         private const string MainMethod = "Main";
         private const string UnloadMethod = "Unload";

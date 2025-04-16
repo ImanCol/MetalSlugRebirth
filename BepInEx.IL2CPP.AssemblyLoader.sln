@@ -2,7 +2,7 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BepInEx.IL2CPP.AssemblyLoader", "AssemblyLoader\AssemblyLoader.csproj", "{7BBEF1E9-52C9-4785-80B5-2B995C005299}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Payload", "Payload\Payload.csproj", "{BE0D6CAE-A786-434A-8304-3A6DFC87AC55}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MSLoader", "MSLoader\MSLoader.csproj", "{BE0D6CAE-A786-434A-8304-3A6DFC87AC55}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

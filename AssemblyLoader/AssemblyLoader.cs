@@ -6,7 +6,7 @@ namespace AssemblyLoader
 {
     public class AssemblyLoader
     {
-        private const string DirectoryName = "assembly";
+        private const string DirectoryName = "MSLoader";
         private const string DllName = "MSLoader.dll";
 
         private const string MainMethod = "Main";
@@ -23,7 +23,7 @@ namespace AssemblyLoader
         {
             this.log = log;
 
-            string assemblyDirectory = Path.Combine(Paths.BepInExRootPath, DirectoryName);
+            string assemblyDirectory = Path.Combine(Paths.GameRootPath, DirectoryName);
             assemblyPath = Path.Combine(assemblyDirectory, DllName);
 
             fileSystemWatcher = new FileSystemWatcher(assemblyDirectory);

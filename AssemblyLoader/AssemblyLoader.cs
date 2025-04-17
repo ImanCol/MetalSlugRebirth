@@ -43,12 +43,16 @@ namespace AssemblyLoader
             InvokeMethod(previousAssembly, UnloadMethod);
             previousAssembly = null;
             previousAssemblyHash = null;
+            Task.Yield();
         }
 
         private void OnAssemblyFileUpdated(object sender, FileSystemEventArgs args)
         {
             if (args.FullPath != assemblyPath)
+            {
+                Task.Yield();
                 return;
+            }
 
             log.LogInfo($"File {Path.GetFileName(args.FullPath)} {args.ChangeType}. Reloading...");
             byte[] bytes = File.ReadAllBytes(assemblyPath);
@@ -56,19 +60,25 @@ namespace AssemblyLoader
             if (newHash == previousAssemblyHash)
             {
                 log.LogInfo("File not changed.");
+                Task.Yield();
                 return;
             }
 
             previousAssemblyHash = newHash;
             InvokeMethod(previousAssembly, UnloadMethod);
+            Task.Yield();
             previousAssembly = Assembly.Load(bytes);
             InvokeMethod(previousAssembly, MainMethod, log);
+            Task.Yield();
         }
 
         private void InvokeMethod(Assembly assembly, string methodName, params object[] parameters)
         {
             if (assembly == null)
+            {
+                Task.Yield();
                 return;
+            }
 
             int paramLength = parameters?.Length ?? 0;
             foreach (Type type in assembly.GetTypes())
@@ -77,12 +87,17 @@ namespace AssemblyLoader
                     .FirstOrDefault(m => m.Name == methodName && m.GetParameters().Length == paramLength);
 
                 if (method == null)
+                {
+                    Task.Yield();
                     continue;
+                }
 
                 log.LogInfo($"Running method {method.Name}");
                 method.Invoke(null, parameters);
+                Task.Yield();
                 break;
             }
+            Task.Yield();
         }
     }
 }

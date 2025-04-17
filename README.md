@@ -7,7 +7,7 @@
 
 ## **Descripción del Proyecto**
 
-Este proyecto es un mod para *Metal Slug* que permite revivir las campañas clásicas del juego en una versión independiente. Está diseñado para funcionar como una herramienta que preserva el legado del juego, permitiendo a los jugadores disfrutar de niveles personalizados y guardar partidas locales.
+Este proyecto es un mod para *Metal Slug by Timi* que permite revivir las campañas clásicas del juego en una versión independiente. Está diseñado para funcionar como una herramienta que preserva el legado del juego, permitiendo a los jugadores disfrutar de niveles personalizados y guardar partidas locales.
 
 No se trata de un parche o hack para alterar el modo online ni de modificar guardados de partidas originales. Este mod está enfocado exclusivamente en brindar una experiencia single-player local, compatible con versiones obsoletas del juego. **No funcionará en versiones más recientes**, y no proporcionamos soporte para dichas versiones.
 
@@ -16,7 +16,7 @@ No se trata de un parche o hack para alterar el modo online ni de modificar guar
 ## **⚠️ Advertencia Importante**
 
 - **Propósito del Mod:**  
-  Esta herramienta fue creada con el objetivo de traer las campañas clásicas de *Metal Slug* a una versión funcional y accesible. No tiene la intención de dañar, perjudicar o alterar el funcionamiento del modo online ni del guardado de partida oficial.
+  Esta herramienta fue creada con el objetivo de traer las campañas clásicas de *Metal Slug* a una versión funcional y accesible usando el motor grafico de Unity. No tiene la intención de dañar, perjudicar o alterar el funcionamiento del modo online ni del guardado de partida en el juego oficial.
 
 - **Uso Responsable:**  
   Se espera que este mod funcione únicamente en versiones obsoletas del videojuego. En caso de que alguien intente usarlo en versiones más recientes o con propósitos indebidos, **no somos responsables** y no brindaremos soporte.
@@ -63,9 +63,10 @@ No se trata de un parche o hack para alterar el modo online ni de modificar guar
 Desarrollar este mod lleva tiempo y dedicación. Si deseas apoyar este proyecto, puedes contribuir con una donación para ayudarnos a cubrir los costos de desarrollo y continuar mejorando el mod.
 
 - **Donaciones:**  
-  [Enlace a Donaciones] *(si tienes un enlace específico, añádelo aquí)*.
+  [Paypal] *(http://paypal.me/imancol)*.
+  [ko-fi] *(https://ko-fi.com/imancol)*.
 
-Tu apoyo nos motiva a seguir trabajando en este proyecto y asegurarnos de que *Metal Slug* siga vivo para futuras generaciones.
+Tu apoyo me motiva a seguir trabajando en este proyecto y asegurarme de que *Metal Slug: Rebirth* siga vivo.
 
 ---
 
@@ -117,7 +118,7 @@ Si tienes preguntas o comentarios sobre el proyecto, puedes contactarnos a trav�
 
 ## 🙏 Agradecimientos
 
-Queremos agradecer a todos los colaboradores, testers y usuarios que han apoyado este proyecto. Sin su ayuda, este mod no sería posible.
+This plugin is inspired by [BepInEx.IL2CPP.AssemblyLoader](https://github.com/zongjingyao/BepInEx.IL2CPP.AssemblyLoader).
 
 ---
 
@@ -125,12 +126,7 @@ Queremos agradecer a todos los colaboradores, testers y usuarios que han apoyado
 
 Esperamos que este mod te permita disfrutar de las campañas clásicas de *Metal Slug* y revivir los momentos épicos del juego. ¡Gracias por tu apoyo y por ser parte de esta comunidad!
 
-🎮 **¡Que tengas una gran aventura!** 🎮
-
 ---
 
-> **Nota:** Este proyecto no está afiliado con los creadores originales de *Metal Slug*. Es un mod hecho por fans para fans.
+> **Nota:** Este proyecto no está afiliado con los creadores originales de *Metal Slug by Timi*. Es un mod hecho por fans para fans.
 
-
-
-This plugin is inspired by [BepInEx.IL2CPP.AssemblyLoader](https://github.com/zongjingyao/BepInEx.IL2CPP.AssemblyLoader).

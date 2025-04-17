@@ -55,6 +55,7 @@ namespace AssemblyLoader
             }
 
             log.LogInfo($"File {Path.GetFileName(args.FullPath)} {args.ChangeType}. Reloading...");
+            Thread.Sleep(3000);
             byte[] bytes = File.ReadAllBytes(assemblyPath);
             string newHash = Utils.Md5FromBytes(bytes);
             if (newHash == previousAssemblyHash)

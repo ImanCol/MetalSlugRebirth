@@ -31,10 +31,79 @@
             <HintPath>..\Lib\UnityEngine.CoreModule.dll</HintPath>
             <Private>False</Private>
         </Reference>
+        <Reference Include="Unity.InputSystem">
+            <HintPath>..\Lib\Unity.InputSystem.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="Unity.ugui">
+            <HintPath>..\Lib\Unity.ugui.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="Unity_List_Dict">
+            <HintPath>..\Lib\Unity_List_Dict.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="UnityEngine.IMGUIModule">
+            <HintPath>..\Lib\UnityEngine.IMGUIModule.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="UnityEngine.UIModule">
+            <HintPath>..\Lib\UnityEngine.UIModule.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="UnityEngine.ParticleSystemModule">
+            <HintPath>..\Lib\UnityEngine.ParticleSystemModule.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="UnityEngine.DirectorModule">
+            <HintPath>..\Lib\UnityEngine.DirectorModule.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="Unity.Postprocessing">
+            <HintPath>..\Lib\Unity.Postprocessing.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="Google.Protobuf">
+            <HintPath>..\Lib\Google.Protobuf.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="Unity.TextMeshPro">
+            <HintPath>..\Lib\Unity.TextMeshPro.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="UnityEngine.InputLegacyModule">
+            <HintPath>..\Lib\UnityEngine.InputLegacyModule.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="UnityEngine.TextRenderingModule">
+            <HintPath>..\Lib\UnityEngine.TextRenderingModule.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="Il2CppSystem">
+            <HintPath>..\Lib\Il2CppSystem.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="UnityEngine.AssetBundleModule">
+            <HintPath>..\Lib\UnityEngine.AssetBundleModule.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="UnityEngine.AudioModule">
+            <HintPath>..\Lib\UnityEngine.AudioModule.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="UnityEngine.AnimationModule">
+            <HintPath>..\Lib\UnityEngine.AnimationModule.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
     </ItemGroup>
-
+     <ItemGroup>
+   <!--  <Compile Include="MSX.cs" />-->
+  
+    <EmbeddedResource Include="Hooks\*" />
+  </ItemGroup>
+  
 <!--    <PropertyGroup>-->
-<!--        <PostBuildEvent>xcopy "$(SolutionDir)\Payload\bin\Debug\net6.0\Payload.dll" "Your destination directory" /Y</PostBuildEvent>-->
+<!--        <PostBuildEvent>xcopy "$(SolutionDir)\MSLoader\bin\Debug\net6.0\MSLoader.dll" "Your destination directory" /Y</PostBuildEvent>-->
 <!--    </PropertyGroup>-->
 
 </Project>

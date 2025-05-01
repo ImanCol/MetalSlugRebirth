@@ -40,6 +40,7 @@ namespace AssemblyLoader
             fileSystemWatcher.Dispose();
             fileSystemWatcher = null;
 
+            log.LogInfo("FileSystemWatcher disposed.");
             InvokeMethod(previousAssembly, UnloadMethod);
             previousAssembly = null;
             previousAssemblyHash = null;
@@ -66,9 +67,11 @@ namespace AssemblyLoader
             }
 
             previousAssemblyHash = newHash;
+            log.LogWarning("assembly hash changed, unloading previous assembly.");
             InvokeMethod(previousAssembly, UnloadMethod);
             Task.Yield();
             previousAssembly = Assembly.Load(bytes);
+            log.LogInfo("Invoking assembly main method.");
             InvokeMethod(previousAssembly, MainMethod, log);
             Task.Yield();
         }
@@ -82,21 +85,43 @@ namespace AssemblyLoader
             }
 
             int paramLength = parameters?.Length ?? 0;
-            foreach (Type type in assembly.GetTypes())
+            try
             {
-                MethodInfo method = type.GetMethods(BindingFlags.Static | BindingFlags.Public)
-                    .FirstOrDefault(m => m.Name == methodName && m.GetParameters().Length == paramLength);
-
-                if (method == null)
+                foreach (Type type in assembly.GetTypes())
                 {
-                    Task.Yield();
-                    continue;
-                }
+                    MethodInfo method = type.GetMethods(BindingFlags.Static | BindingFlags.Public)
+                        .FirstOrDefault(m => m.Name == methodName && m.GetParameters().Length == paramLength);
 
-                log.LogInfo($"Running method {method.Name}");
-                method.Invoke(null, parameters);
-                Task.Yield();
-                break;
+                    if (method == null)
+                    {
+                        continue;
+                    }
+
+                    var methodParams = method.GetParameters();
+                    bool paramsMatch = true;
+                    for (int i = 0; i < methodParams.Length; i++)
+                    {
+                        if (!methodParams[i].ParameterType.IsAssignableFrom(parameters[i].GetType()))
+                        {
+                            paramsMatch = false;
+                            break;
+                        }
+                    }
+
+                    if (!paramsMatch)
+                    {
+                        continue;
+                    }
+
+                    log.LogInfo($"Running method {method.Name}");
+                    method.Invoke(null, parameters);
+                    break;
+                }
+                log.LogInfo($"Invoking method {methodName} with {paramLength} parameters.");
+            }
+            catch (Exception ex)
+            {
+                log.LogError($"Error invoking method {methodName}: {ex}");
             }
             Task.Yield();
         }

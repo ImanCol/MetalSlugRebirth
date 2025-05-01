@@ -101,7 +101,7 @@ namespace MSALoader.Core
             finally
             {
 
-                assetBundle.Unload(false);
+                //assetBundle.Unload(false);
             }
         }
 

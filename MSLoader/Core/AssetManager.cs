@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Il2CppInterop.Runtime;
 using MSALoader.Core;
 using UnityEngine;
@@ -14,21 +15,10 @@ public class AssetManager : MonoBehaviour
     private List<string> availableScenes = new List<string>();
     private AssetBundle currentSceneBundle;
 
-    public List<string> GetAvailableScenes()
-    {
-        return availableScenes;
-    }
+    public List<string> GetAvailableScenes => availableScenes;
+    public Dictionary<string, UnityEngine.Object> GetAvailableAssets => assetCache;
+    public AssetBundle GetavailableSceneBundle => currentSceneBundle;
 
-    public Dictionary<string, UnityEngine.Object> GetAvailableAssets()
-    {
-        return assetCache;
-    }
-
-    public AssetBundle GetavailableSceneBundle()
-    {
-        // Devuelve el bundle actual de escenas si existe
-        return currentSceneBundle;
-    }
 
     internal AssetBundle GetLoadedBundle(string bundleName)
     {
@@ -85,23 +75,40 @@ public class AssetManager : MonoBehaviour
         }
     }
 
+    //public IEnumerator LoadAssetBundle(string bundleName)
+
+
     public IEnumerator LoadAssetBundle(string bundleName)
     {
+        MSLoader.Logger.LogWarning($"Intentando cargar: {bundleName}");
+
         if (assetBundles.ContainsKey(bundleName))
         {
             MSLoader.Logger.LogWarning($"Bundle de assets ya cargado: {bundleName}");
             yield break;
         }
+        MSLoader.Logger.LogWarning($"Siguiente: {bundleName}");
 
         string bundlePath = Path.Combine(assetsPath, $"{bundleName}.bundle");
+        MSLoader.Logger.LogWarning($"Path: {bundlePath}");
+
         if (!File.Exists(bundlePath))
         {
             MSLoader.Logger.LogError($"Bundle no encontrado: {bundlePath}");
             yield break;
         }
+        MSLoader.Logger.LogWarning($"Comenzando request: {bundlePath}");
 
         AssetBundleCreateRequest request = AssetBundle.LoadFromFileAsync(bundlePath);
-        yield return request;
+        //yield return request;
+        MSLoader.Logger.LogWarning($"Done?: {request.isDone}");
+
+        while (!request.isDone)
+        {
+            MSLoader.Logger.LogInfo($"Progreso carga: {request.progress * 100}%");
+            yield return null;
+        }
+
 
         AssetBundle bundle = request.assetBundle;
         if (bundle == null)
@@ -111,10 +118,10 @@ public class AssetManager : MonoBehaviour
         }
 
         assetBundles[bundleName] = bundle;
-        LoadAllAssets(bundleName);
+        LoadAllAssets(bundleName).Wait();
     }
 
-    private void LoadAllAssets(string bundleName)
+    private async Task LoadAllAssets(string bundleName)
     {
         if (!assetBundles.ContainsKey(bundleName))
         {
@@ -133,9 +140,10 @@ public class AssetManager : MonoBehaviour
                 MSLoader.Logger.LogInfo($"Asset cargado: {asset.name} ({asset.GetIl2CppType().Name})");
             }
         }
+        await Task.Yield();
     }
 
-    public void InstantiateAssetFromBundle(string bundleName, string assetInfo)
+    public async Task InstantiateAssetFromBundle(string bundleName, string assetInfo)
     {
         string assetName = assetInfo.Split(' ')[0];
 
@@ -153,7 +161,7 @@ public class AssetManager : MonoBehaviour
                 if (animationClip != null)
                 {
                     MSLoader.Logger.LogWarning($"AnimationClip cargado: {animationClip.name}");
-                    MSBootstrap.Instance.animatorController.ChangeAnimationFromBundle(animationClip);
+                    await MSBootstrap.Instance.animatorController.ChangeAnimationFromBundle(animationClip);
                 }
                 else
                 {
@@ -174,9 +182,9 @@ public class AssetManager : MonoBehaviour
         {
             MSLoader.Logger.LogError($"Asset {assetName} no encontrado en el caché");
         }
+        await Task.Yield();
     }
-
-    public void UnloadAssetBundle(string bundleName)
+    public IEnumerator UnloadAssetBundle(string bundleName)
     {
         if (assetBundles.TryGetValue(bundleName, out AssetBundle bundle))
         {
@@ -190,8 +198,8 @@ public class AssetManager : MonoBehaviour
                 assetCache.Remove(asset.Key);
             }
         }
+        yield return null;
     }
-
 
     private AssetBundleManifest manifest;
 
@@ -325,7 +333,7 @@ public class AssetManager : MonoBehaviour
         }
     }
 
-    public List<string> GetAvailableAnimationClipsFromBundle()
+    public async Task<List<string>> GetAvailableAnimationClipsFromBundle()
     {
         var animations = new List<string>();
 
@@ -344,10 +352,11 @@ public class AssetManager : MonoBehaviour
                             MSLoader.Logger.LogWarning($"anim: {clip.name} \n");
                             animations.Add(clip.name);
                         }
-
                     }
                 }
+                await Task.Yield();
             }
+            await Task.Yield();
         }
 
         // Animaciones externas cargadas

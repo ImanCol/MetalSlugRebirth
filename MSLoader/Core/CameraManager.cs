@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using MSALoader.Components;
 using UnityEngine;
 
@@ -8,26 +9,26 @@ namespace MSALoader.Core
     public class CameraManager
     {
         // Lista de todas las cámaras detectadas
-        private List<Camera> allCameras = new List<Camera>();
+        public List<Camera> allCameras = new List<Camera>();
 
         // Cámara dedicada para depuración
-        private Camera dedicatedCamera;
+        public Camera dedicatedCamera;
         private bool useDedicatedCamera = false;
 
         // Índice de la cámara seleccionada
-        private int selectedCameraIndex = 0;
+        public int selectedCameraIndex = 0;
 
         // Estado de la cámara libre
-        private bool isFreeCameraActive = false;
+        private static bool isFreeCameraActive = false;
         public Camera freeCamera;
-        public Camera FreeCamera => freeCamera;
+        public Camera FreeCamera => CameraDebugController.freeCamera;
 
-        private CameraDebugController cameraDebugController;
+        //private CameraDebugController cameraDebugController;
 
         /// <summary>
         /// Actualiza la lista de cámaras disponibles.
         /// </summary>
-        public void UpdateCamerasList()
+        public async Task UpdateCamerasList()
         {
             try
             {
@@ -41,6 +42,7 @@ namespace MSALoader.Core
                     {
                         allCameras.Add(cam);
                     }
+                    await Task.Yield();
                 }
 
                 // Ordenar por nombre y profundidad
@@ -53,10 +55,11 @@ namespace MSALoader.Core
             }
         }
 
+
         /// <summary>
         /// Alterna la cámara libre.
         /// </summary>
-        public void ToggleFreeCamera(bool active)
+        public async Task ToggleFreeCamera(bool active)
         {
             try
             {
@@ -64,65 +67,80 @@ namespace MSALoader.Core
 
                 if (active == isFreeCameraActive) return;
 
-                if (active)
-                {
-                    MSLoader.Logger.LogWarning("Attempting to create free camera");
-                    // Crear cámara libre si no existe
-                    if (freeCamera == null)
-                    {
-                        MSLoader.Logger.LogWarning("Creating new camera GameObject");
-                        GameObject cameraGO = new GameObject("Free_Camera");
-
-                        MSLoader.Logger.LogWarning("Adding Camera component");
-                        freeCamera = cameraGO.AddComponent<Camera>();
-
-                        MSLoader.Logger.LogWarning("Setting camera properties");
-                        freeCamera.depth = 100; // Máxima prioridad
-                        freeCamera.tag = "MainCamera";
-
-                        MSLoader.Logger.LogWarning("Setting camera transform");
-                        if (Camera.main != null)
-                        {
-                            freeCamera.transform.position = Camera.main.transform.position;
-                            freeCamera.transform.rotation = Camera.main.transform.rotation;
-                        }
-
-                        MSLoader.Logger.LogWarning("Adding CameraDebugController component");
-                        cameraDebugController = cameraGO.AddComponent<CameraDebugController>();
-                    }
-
-                    MSLoader.Logger.LogWarning("Switching camera states");
-                    if (Camera.main != null)
-                    {
-                        Camera.main.enabled = false;
-                    }
-                    freeCamera.enabled = true;
-                }
-                else
-                {
-                    MSLoader.Logger.LogWarning("Attempting to restore main camera");
-                    // Restaurar la cámara principal
-                    if (freeCamera != null)
-                    {
-                        freeCamera.enabled = false;
-                        if (Camera.main != null)
-                        {
-                            Camera.main.enabled = true;
-                        }
-
-                        MSLoader.Logger.LogWarning("Destroying free camera");
-                        UnityEngine.Object.Destroy(freeCamera.gameObject);
-                        freeCamera = null;
-                        cameraDebugController = null;
-                    }
-                }
-
+                // Alternar la cámara libre
                 isFreeCameraActive = active;
+                await CameraDebugController.ToggleFreeCamera(Camera.main, active);
+
                 MSLoader.Logger.LogInfo(isFreeCameraActive ? "Cámara libre activada" : "Cámara libre desactivada");
             }
             catch (Exception ex)
             {
                 MSLoader.Logger.LogError($"Error alternando cámara libre: {ex}");
+            }
+            await Task.Yield();
+        }
+
+        /// <summary>
+        /// Cambia la posición de la cámara dedicada a la siguiente cámara disponible.
+        /// </summary>
+        public async Task SwitchToNextCamera()
+        {
+            try
+            {
+                if (allCameras == null || allCameras.Count == 0)
+                {
+                    MSLoader.Logger.LogWarning("No hay cámaras disponibles para alternar.");
+                    return;
+                }
+
+                MSLoader.Logger.LogWarning("Buscando siguiente camara...");
+
+                // Incrementar el índice de la cámara seleccionada
+                selectedCameraIndex = (selectedCameraIndex + 1) % allCameras.Count;
+
+                MSLoader.Logger.LogWarning($"[CameraManager] Camara Selecionada: {selectedCameraIndex}");
+
+
+                Camera nextCamera = allCameras[selectedCameraIndex];
+
+                MSLoader.Logger.LogWarning($"[CameraManager] Nombre de Camara: {nextCamera.name}");
+
+
+                if (nextCamera != null && FreeCamera != null)
+                {
+                    MSLoader.Logger.LogWarning("ajustando posicion...");
+                    FreeCamera.transform.position = nextCamera.transform.position;
+                    FreeCamera.transform.rotation = nextCamera.transform.rotation;
+
+                    MSLoader.Logger.LogInfo($"Cámara dedicada posicionada en: {nextCamera.name}");
+                    await CameraDebugController.UpdateDedicatedCameraPosition();
+                }
+            }
+            catch (Exception ex)
+            {
+                MSLoader.Logger.LogError($"Error cambiando a la siguiente cámara: {ex}");
+            }
+        }
+
+        /// <summary>
+        /// Actualiza los controles de la cámara libre.
+        /// </summary>
+        public async Task UpdateFreeCamera()
+        {
+            if (isFreeCameraActive)
+            {
+                await CameraDebugController.UpdateFreeCamera();
+            }
+        }
+
+        /// <summary>
+        /// Dibuja la interfaz gráfica para la cámara libre.
+        /// </summary>
+        public async Task DrawGUI()
+        {
+            if (isFreeCameraActive)
+            {
+                await CameraDebugController.DrawGUI();
             }
         }
 
@@ -145,7 +163,7 @@ namespace MSALoader.Core
         /// <summary>
         /// Cambia a la siguiente cámara en la lista.
         /// </summary>
-        public void SwitchCamera()
+        public async Task SwitchCamera()
         {
             if (allCameras.Count == 0) return;
 
@@ -161,12 +179,13 @@ namespace MSALoader.Core
             allCameras[selectedCameraIndex].depth = 100;
 
             MSLoader.Logger.LogInfo($"Cámara activada: {allCameras[selectedCameraIndex].name}");
+            await Task.Yield();
         }
 
         /// <summary>
         /// Selecciona una cámara específica.
         /// </summary>
-        public void SelectCamera(Camera camera)
+        public async Task SelectCamera(Camera camera)
         {
             if (camera == null || !allCameras.Contains(camera)) return;
 
@@ -182,6 +201,7 @@ namespace MSALoader.Core
             allCameras[selectedCameraIndex].depth = 100;
 
             MSLoader.Logger.LogInfo($"Cámara seleccionada: {camera.name}");
+            await Task.Yield();
         }
 
 
@@ -189,7 +209,7 @@ namespace MSALoader.Core
         /// <summary>
         /// Crea una cámara dedicada para depuración.
         /// </summary>
-        public void CreateDedicatedCamera()
+        public async Task CreateDedicatedCamera()
         {
             if (dedicatedCamera == null)
             {
@@ -212,11 +232,11 @@ namespace MSALoader.Core
                 dedicatedCamera.transform.rotation = Quaternion.Euler(20, 0, 0);
 
                 // Actualizar lista de cámaras
-                UpdateCamerasList();
+                await UpdateCamerasList();
             }
         }
 
-        public void DestroyFreeCamera()
+        public async Task DestroyFreeCamera()
         {
             if (freeCamera != null)
             {
@@ -224,6 +244,7 @@ namespace MSALoader.Core
                 freeCamera.enabled = false;
                 freeCamera = null;
             }
+            await Task.Yield();
         }
 
 

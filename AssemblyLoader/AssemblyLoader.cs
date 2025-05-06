@@ -59,6 +59,7 @@ namespace AssemblyLoader
             Thread.Sleep(3000);
             byte[] bytes = File.ReadAllBytes(assemblyPath);
             string newHash = Utils.Md5FromBytes(bytes);
+            log.LogInfo($"Hash: {newHash}");
             if (newHash == previousAssemblyHash)
             {
                 log.LogInfo("File not changed.");

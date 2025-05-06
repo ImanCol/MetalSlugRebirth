@@ -42,7 +42,6 @@ namespace MSALoader.Core
                     {
                         allCameras.Add(cam);
                     }
-                    await Task.Yield();
                 }
 
                 // Ordenar por nombre y profundidad
@@ -53,6 +52,7 @@ namespace MSALoader.Core
             {
                 MSLoader.Logger.LogError($"Error actualizando cámaras: {ex}");
             }
+            await Task.Yield();
         }
 
 
@@ -77,7 +77,6 @@ namespace MSALoader.Core
             {
                 MSLoader.Logger.LogError($"Error alternando cámara libre: {ex}");
             }
-            await Task.Yield();
         }
 
         /// <summary>
@@ -125,11 +124,11 @@ namespace MSALoader.Core
         /// <summary>
         /// Actualiza los controles de la cámara libre.
         /// </summary>
-        public async Task UpdateFreeCamera()
+        public void UpdateFreeCamera()
         {
             if (isFreeCameraActive)
             {
-                await CameraDebugController.UpdateFreeCamera();
+                CameraDebugController.UpdateFreeCamera();
             }
         }
 

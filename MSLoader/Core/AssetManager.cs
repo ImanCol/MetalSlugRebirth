@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Il2CppInterop.Runtime;
 using MSALoader.Core;
 using UnityEngine;
+using UnityEngine.Playables;
 
 
 public class AssetManager : MonoBehaviour
@@ -19,6 +20,82 @@ public class AssetManager : MonoBehaviour
     public Dictionary<string, UnityEngine.Object> GetAvailableAssets => assetCache;
     public AssetBundle GetavailableSceneBundle => currentSceneBundle;
 
+    public Dictionary<string, AnimationClip> resourcesAnimations = new Dictionary<string, AnimationClip>();
+
+    public void LoadAnimationsFromResources()
+    {
+        // Cargar todas las animaciones desde Resources
+        var clips = Resources.FindObjectsOfTypeAll<AnimationClip>()
+                             .Where(clip => clip != null)
+                             .ToList();
+
+        foreach (var clip in clips)
+        {
+            if (!resourcesAnimations.ContainsKey(clip.name))
+            {
+                resourcesAnimations.Add(clip.name, clip);
+                MSLoader.Logger.LogInfo($"Animación cargada desde Resources: {clip.name}");
+            }
+        }
+
+        MSLoader.Logger.LogInfo($"Se cargaron {resourcesAnimations.Count} animaciones desde Resources.");
+    }
+
+    public List<RuntimeAnimatorController> availableControllers = new List<RuntimeAnimatorController>();
+
+    public void ListAvailableRuntimeAnimatorControllers()
+    {
+        // Limpiar la lista actual
+        availableControllers.Clear();
+
+        // Buscar todos los RuntimeAnimatorController en Resources
+        RuntimeAnimatorController[] controllers = Resources.FindObjectsOfTypeAll<RuntimeAnimatorController>();
+
+        if (controllers.Length == 0)
+        {
+            Debug.LogWarning("No se encontraron RuntimeAnimatorController en Resources.");
+            return;
+        }
+
+        Debug.Log($"Se encontraron {controllers.Length} RuntimeAnimatorController:");
+
+        foreach (var controller in controllers)
+        {
+            if (controller != null)
+            {
+                availableControllers.Add(controller);
+                Debug.Log($"Nombre: {controller.name}, Tipo: {controller.GetType()}");
+            }
+        }
+    }
+
+    public List<PlayableAsset> availablePlayableAssets = new List<PlayableAsset>();
+
+    public void ListAvailablePlayableGraphs()
+    {
+        // Limpiar la lista actual
+        availablePlayableAssets.Clear();
+
+        // Buscar todos los RuntimeAnimatorController en Resources
+        PlayableAsset[] playableAssets = Resources.FindObjectsOfTypeAll<PlayableAsset>();
+
+        if (playableAssets.Length == 0)
+        {
+            Debug.LogWarning("No se encontraron PlayableAsset en Resources.");
+            return;
+        }
+
+        Debug.Log($"Se encontraron {playableAssets.Length} PlayableAsset:");
+
+        foreach (var playableAsset in playableAssets)
+        {
+            if (playableAsset != null)
+            {
+                availablePlayableAssets.Add(playableAsset);
+                Debug.Log($"Nombre: {playableAsset.name}, Tipo: {playableAsset.GetType()}");
+            }
+        }
+    }
 
     internal AssetBundle GetLoadedBundle(string bundleName)
     {
@@ -131,64 +208,89 @@ public class AssetManager : MonoBehaviour
 
         AssetBundle bundle = assetBundles[bundleName];
         string[] assetNames = bundle.GetAllAssetNames();
+
         foreach (string assetName in assetNames)
         {
+            // Cargar el asset principal
             UnityEngine.Object asset = bundle.LoadAsset(assetName);
             if (asset != null)
             {
+                // Almacenar el asset principal en el caché
                 assetCache[asset.name] = asset;
                 MSLoader.Logger.LogInfo($"Asset cargado: {asset.name} ({asset.GetIl2CppType().Name})");
             }
+
+            // Cargar los sub-assets asociados
+            var subAssets = bundle.LoadAssetWithSubAssets(assetName);
+            MSLoader.Logger.LogWarning($"Cantidad de sub-assets: {subAssets.Length}");
+
+            foreach (var subAsset in subAssets)
+            {
+                // Almacenar cada sub-asset en el caché
+                if (subAsset != null)
+                {
+                    assetCache[subAsset.name] = subAsset;
+                    MSLoader.Logger.LogInfo($"Sub-asset cargado: {subAsset.name} ({subAsset.GetType().Name})");
+                }
+            }
         }
+
         await Task.Yield();
     }
 
-    public async Task InstantiateAssetFromBundle(string bundleName, string assetInfo)
+    //packed_data\actor\artactor\playerhd.pm_01.s008@pm_01_marco_h
+    //packed_data\actor\artactor\playerhd.pm_01.s008@pm_01_marco_h
+    //S008@PM_01_Marco_2H@Stand01
+    //S008@PM_01_Marco_2H@Stand01
+    //S008@PM_01_Marco_H@Stand02    
+    public IEnumerator InstantiateAssetFromBundle(string bundleName, string assetInfo)
     {
+        MSLoader.Logger.LogWarning($"Instantiate Asset From Bundle: {bundleName} - {assetInfo}");
         string assetName = assetInfo.Split(' ')[0];
 
+        // Verificar si el asset está en el caché
         if (assetCache.TryGetValue(assetName, out UnityEngine.Object asset))
         {
+            // Si el asset es un GameObject, instanciarlo directamente
             if (asset.GetType() == typeof(GameObject) || asset.GetIl2CppType().FullName == "UnityEngine.GameObject")
             {
                 UnityEngine.Object.Instantiate(asset, Vector3.zero, Quaternion.identity);
                 MSLoader.Logger.LogInfo($"Instanciado: {assetName}");
             }
+            // Si el asset es un AnimationClip, aplicarlo al Animator
             else if (asset.GetType() == typeof(AnimationClip) || asset.GetIl2CppType().FullName == "UnityEngine.AnimationClip")
             {
+
                 AnimationClip animationClip = asset.TryCast<AnimationClip>();
 
                 if (animationClip != null)
                 {
                     MSLoader.Logger.LogWarning($"AnimationClip cargado: {animationClip.name}");
-                    await MSBootstrap.Instance.animatorController.ChangeAnimationFromBundle(animationClip);
+                    yield return testHook.animatorController.ChangeAnimationFromBundle(animationClip);
                 }
                 else
                 {
                     MSLoader.Logger.LogError($"No se pudo convertir el asset a AnimationClip: {asset.GetIl2CppType().FullName}");
                 }
-                //AssetBundle assetBundle = GetLoadedBundle(bundleName);
-                //MSLoader.Logger.LogWarning($"Nombre bundle: { assetBundle.name} | nombre asset: {assetName} | original name: {assetInfo}");
-                //AnimationClip animationClip = (AnimationClip)assetBundle.LoadAsset(assetName, Il2CppType.From(typeof(AnimationClip)));
-                //MSLoader.Logger.LogWarning($"Nombre animationClip: { animationClip.name}");
-                //MSBootstrap.Instance.animatorController.ChangeAnimationFromBundle(animationClip);
             }
             else
             {
-                MSLoader.Logger.LogWarning($"El asset {assetName} es de tipo {asset.GetIl2CppType().FullName}, no es un GameObject");
+                MSLoader.Logger.LogWarning($"El asset {assetName} es de tipo {asset.GetType().Name}, no es un GameObject ni AnimationClip.");
             }
         }
         else
         {
-            MSLoader.Logger.LogError($"Asset {assetName} no encontrado en el caché");
+            MSLoader.Logger.LogError($"Asset {assetName} no encontrado en el caché.");
         }
-        await Task.Yield();
+        yield return null;
     }
+
     public IEnumerator UnloadAssetBundle(string bundleName)
     {
         if (assetBundles.TryGetValue(bundleName, out AssetBundle bundle))
         {
             bundle.Unload(true);
+            yield return null;
             assetBundles.Remove(bundleName);
             MSLoader.Logger.LogInfo($"Bundle descargado: {bundleName}");
 
@@ -269,7 +371,7 @@ public class AssetManager : MonoBehaviour
         }
 
         // Instanciar el asset
-        InstantiateAssetFromBundle(bundleName, assetName);
+        testHook.StartCoroutine(InstantiateAssetFromBundle(bundleName, assetName)).GetAwaiter().GetResult();
     }
 
     public IEnumerator LoadAnimatorFromBundle(string bundleName, string assetName)

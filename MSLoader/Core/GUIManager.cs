@@ -4,7 +4,8 @@ using System.Threading.Tasks;
 using BepInEx.Unity.IL2CPP.Utils;
 using UnityEngine;
 using UnityEngine.Animations;
-using UnityEngine.PlayerLoop;
+using UnityEngine.Playables;
+//using UnityEngine.PlayerLoop;
 using UnityEngine.SceneManagement;
 
 namespace MSALoader.Core
@@ -28,7 +29,7 @@ namespace MSALoader.Core
         private Color inactiveColor = new Color(0.7f, 0.7f, 0.7f, 1f);
 
         // Referencias a otros sistemas
-        private AssetManager assetManager;
+        public AssetManager assetManager;
         private SceneLoader sceneLoader;
         private ObjectHierarchy objectHierarchy;
         private CameraManager cameraManager;
@@ -72,11 +73,19 @@ namespace MSALoader.Core
                 }
                 else if (MSLoader.version == "1.8.4") //S3
                 {
-                    DrawHierarchyPanel();
+                    //DrawHierarchyPanel();
                     //DrawInspectorPanel();
                     //DrawCameraControlsPanel();
                     //DrawAnimationSelectorPanel();
                     //await DrawBundleLoader(); // Nuevo panel de gestión de bundles
+                }
+                else
+                {
+                    DrawHierarchyPanel();
+                    DrawInspectorPanel();
+                    DrawCameraControlsPanel();
+                    DrawAnimationSelectorPanel();
+                    DrawBundleLoader(); // Nuevo panel de gestión de bundles 
                 }
             }
             catch (Exception ex)
@@ -102,11 +111,9 @@ namespace MSALoader.Core
             objectHierarchy.DrawHierarchy();
             GUI.EndScrollView();
         }
-
         /// <summary>
         /// Dibuja el panel de inspector.
         /// </summary>
-        // En GUIManager.cs
         private void DrawInspectorPanel()
         {
             if (!showInspectorPanel) return;
@@ -115,16 +122,20 @@ namespace MSALoader.Core
 
             if (selectedObject == null) return;
 
+            // Calcular la altura total del contenido
+            float totalContentHeight = CalculateTotalInspectorHeight(selectedObject);
+
+            // Dibujar el cuadro principal del panel
             GUI.Box(new Rect(320, 10, 400, Screen.height - 20), $"Inspector: {selectedObject.name}");
 
+            // Iniciar área desplazable
             inspectorScrollPosition = GUI.BeginScrollView(
-                new Rect(330, 40, 380, Screen.height - 60),
+                new Rect(330, 40, 380, Screen.height - 60), // Área visible
                 inspectorScrollPosition,
-                new Rect(0, 0, 360, 1000)
+                new Rect(0, 0, 360, totalContentHeight) // Área total del contenido
             );
 
             float yPos = 0;
-
 
             // Botón para activar/desactivar el GameObject
             bool isActive = selectedObject.activeSelf;
@@ -153,16 +164,89 @@ namespace MSALoader.Core
             {
                 DrawAnimatorControls(animator, ref yPos);
             }
-            GUI.EndScrollView();
 
-            return;
+            // Mostrar otros componentes del objeto seleccionado
+            DrawAllComponents(selectedObject, ref yPos);
+
+            // Finalizar área desplazable
+            GUI.EndScrollView();
         }
 
         /// <summary>
-        /// Dibuja todos los componentes del objeto seleccionado.
-        private async Task<float> DrawAllComponents(GameObject obj, float yPos)
+        /// Calcula la altura total necesaria para mostrar todos los elementos del inspector.
+        /// </summary>
+        private float CalculateTotalInspectorHeight(GameObject obj)
         {
-            if (obj == null) return yPos;
+            if (obj == null) return 0;
+
+            float totalHeight = 0;
+
+            // Botón para activar/desactivar el GameObject
+            totalHeight += 30;
+
+            // Transform Inspector
+            totalHeight += 100; // Altura aproximada para Transform
+
+            // RectTransform Inspector (si existe)
+            if (obj.GetComponent<RectTransform>() != null)
+            {
+                totalHeight += 100; // Altura aproximada para RectTransform
+            }
+
+            // Animator Controls (si existe)
+            if (obj.GetComponent<Animator>() != null)
+            {
+                totalHeight += 100; // Altura aproximada para Animator
+            }
+
+            // Componentes adicionales
+            Component[] components = obj.GetComponents<Component>();
+            foreach (var component in components)
+            {
+                if (component == null) continue;
+
+                string componentFullName = component.GetIl2CppType().FullName;
+                if (componentFullName == "UnityEngine.Transform" || componentFullName == "UnityEngine.RectTransform") continue;
+
+                // Nombre del componente
+                totalHeight += 20;
+
+                // Toggle para habilitar/deshabilitar (solo para Behaviour)
+                Behaviour behaviour = component.TryCast<Behaviour>();
+                // Toggle para habilitar/deshabilitar (solo para Behaviour)
+                if (behaviour)
+                {
+                    totalHeight += 25;
+                }
+
+                // Campos editables del componente
+                var fields = component.GetIl2CppType().GetFields(Il2CppSystem.Reflection.BindingFlags.Public | Il2CppSystem.Reflection.BindingFlags.Instance);
+                totalHeight += fields.Length * 25;
+
+                // Métodos del componente
+                var methods = component.GetIl2CppType().GetMethods(Il2CppSystem.Reflection.BindingFlags.Public | Il2CppSystem.Reflection.BindingFlags.Instance);
+                foreach (var method in methods)
+                {
+                    if (method.Name.StartsWith("get_") || method.Name.StartsWith("set_")) continue;
+                    if (method.GetParameters().Length == 0)
+                    {
+                        totalHeight += 25;
+                    }
+                }
+
+                // Espaciado entre componentes
+                totalHeight += 10;
+            }
+
+            return totalHeight;
+        }
+
+
+        /// <summary>
+        /// Dibuja todos los componentes del objeto seleccionado.
+        private void DrawAllComponents(GameObject obj, ref float yPos)
+        {
+            if (obj == null) return;
 
             Component[] components = obj.GetComponents<Component>();
 
@@ -172,21 +256,31 @@ namespace MSALoader.Core
 
                 try
                 {
+                    //MSLoader.Logger.LogInfo($"Componente: {component.GetIl2CppType().FullName}");
+
                     // Filtrar componentes innecesarios
                     string componentFullName = component.GetIl2CppType().FullName;
                     if (componentFullName == "UnityEngine.Transform" || componentFullName == "UnityEngine.RectTransform") continue;
+                    //if (componentFullName == "MS.GameLevel.MSAnimatorController" || componentFullName == "MS.GameLevel.MSAnimatorController")
+                    //    MSLoader.Logger.LogWarning($"MS.GameLevel.MSAnimatorController: {component.name}");
+                    //if (componentFullName == "MS.Lobby.LobbyMSAnimatorController" || componentFullName == "MS.Lobby.LobbyMSAnimatorController")
+                    //    MSLoader.Logger.LogWarning($"MS.GameLevel.LobbyMSAnimatorController: {component.name}");
 
                     // Nombre del componente
                     GUI.Label(new Rect(10, yPos, 360, 20), $"Componente: {component.GetIl2CppType().FullName}");
                     yPos += 20;
 
+                    Behaviour behaviour = component.TryCast<Behaviour>();
+
                     // Toggle para habilitar/deshabilitar (solo para Behaviour)
-                    if (component is Behaviour behaviour)
+                    if (behaviour)
                     {
                         bool isEnabled = behaviour.enabled;
                         bool newEnabled = GUI.Toggle(new Rect(20, yPos, 150, 20), isEnabled, "Habilitado");
                         if (newEnabled != isEnabled)
                         {
+                            MSLoader.Logger.LogInfo($"isEnabled: {isEnabled}");
+
                             behaviour.enabled = newEnabled;
                             MSLoader.Logger.LogInfo($"{component.GetIl2CppType().Name} estado: {newEnabled}");
                         }
@@ -250,16 +344,13 @@ namespace MSALoader.Core
                             yPos += 25;
                         }
                     }
-
                     yPos += 10; // Espaciado entre componentes
                 }
                 catch (Exception ex)
                 {
                     MSLoader.Logger.LogError($"Error dibujando componente: {ex}");
                 }
-                await Task.Yield();
             }
-            return yPos;
         }
 
         private int ConvertToInt(Il2CppSystem.Object value)
@@ -330,27 +421,55 @@ namespace MSALoader.Core
             GUI.EndScrollView();
         }
 
+        float speed = 1.0f;
+
         /// <summary>
         /// Dibuja el panel de selector de animaciones.
         /// </summary>
-        // En GUIManager.cs
         private void DrawAnimationSelectorPanel()
         {
             if (!showAnimationSelectorPanel) return;
 
-            GUI.Box(new Rect(Screen.width - 310, 270, 300, 250), "Selector de Animaciones");
+            // Dibujar el cuadro principal del panel
+            GUI.Box(new Rect(Screen.width - 310, 270, 300, 450), "Selector de Animaciones");
 
+            float yPos = 0; // Posición vertical inicial
+
+            // Calcular la altura total del contenido
+            float totalContentHeight = 0;
+
+            // Mostrar animaciones disponibles desde AnimatorController
+            totalContentHeight += 20; // Etiqueta
+            totalContentHeight += animatorController.GetAvailableAnimations().GetAwaiter().GetResult().Count * 25; // Botones
+            totalContentHeight += 10; // Separador visual
+
+            // Animaciones desde AssetBundle
+            totalContentHeight += 20; // Etiqueta
+            totalContentHeight += 30; // Botón para cargar desde AssetBundle
+            totalContentHeight += 35; // Espaciado adicional
+
+            // Animaciones desde Resources
+            totalContentHeight += 20; // Etiqueta
+            totalContentHeight += 20; // Slider de velocidad
+            totalContentHeight += 40; // Botón para recargar animaciones
+            totalContentHeight += assetManager.resourcesAnimations.Count * 25; // Botones de animaciones
+            totalContentHeight += 40; // Espaciado adicional
+
+            // Iniciar área desplazable
             animationSelectorScrollPosition = GUI.BeginScrollView(
-                new Rect(Screen.width - 300, 300, 280, 200),
+                new Rect(Screen.width - 300, 300, 280, 400), // Área visible
                 animationSelectorScrollPosition,
-                new Rect(0, 0, 260, 500)
+                new Rect(0, 0, 260, totalContentHeight) // Área total del contenido
             );
 
-            float yPos = 0;
+            // Reiniciar yPos para dibujar el contenido
+            yPos = 0;
 
-            // Obtener animaciones disponibles desde AnimatorController
+            // Mostrar animaciones disponibles desde AnimatorController
+            GUI.Label(new Rect(0, yPos, 260, 20), "Animaciones del Animator:");
+            yPos += 20;
+
             List<string> animations = animatorController.GetAvailableAnimations().GetAwaiter().GetResult();
-
             foreach (var animationName in animations)
             {
                 if (GUI.Button(new Rect(0, yPos, 260, 20), animationName))
@@ -360,23 +479,74 @@ namespace MSALoader.Core
                 yPos += 25;
             }
 
-            // Botón para cargar AnimationClips desde un AssetBundle
-            if (GUI.Button(new Rect(0, yPos, 260, 30), "Cargar AnimationClips desde Bundle"))
-            {
+            // Separador visual
+            yPos += 10;
 
-                foreach (var item in assetManager.GetAvailableAnimationClipsFromBundle().GetAwaiter().GetResult())
+            // Botón para cargar AnimationClips desde un AssetBundle
+            GUI.Label(new Rect(0, yPos, 260, 20), "Animaciones desde AssetBundle:");
+            yPos += 20;
+
+            if (GUI.Button(new Rect(0, yPos, 260, 30), "Cargar desde AssetBundle"))
+            {
+                // Cargar animaciones desde AssetBundle
+                var loadedAnimations = assetManager.GetAvailableAnimationClipsFromBundle().GetAwaiter().GetResult();
+                foreach (var item in loadedAnimations)
                 {
-                    MSLoader.Logger.LogWarning($"AnimationCLips Bundle: {item}");
+                    MSLoader.Logger.LogWarning($"AnimationClip desde Bundle: {item}");
                     if (GUI.Button(new Rect(0, yPos, 260, 20), item))
                     {
                         testHook.StartCoroutine(assetManager.LoadAnimatorFromBundle(bundleName, item)).GetAwaiter().GetResult();
                     }
                     yPos += 25;
                 }
+            }
+            yPos += 35;
 
-                //testHook.StartCoroutine(LoadAnimationClipsFromBundle());
+            // Mostrar animaciones disponibles en Resources
+            GUI.Label(new Rect(0, yPos, 260, 20), "Animaciones desde Resources:");
+            yPos += 20;
+
+            // Add speed slider
+            GUI.Label(new Rect(0, yPos, 100, 20), "Velocidad:");
+            speed = GUI.HorizontalSlider(new Rect(100, yPos, 160, 20), speed, 0.1f, 2.0f);
+
+            yPos += 40;
+
+            if (GUI.Button(new Rect(0, yPos, 260, 30), "Recargar Animaciones"))
+            {
+                assetManager.resourcesAnimations.Clear();
+                assetManager.LoadAnimationsFromResources();
+                assetManager.ListAvailableRuntimeAnimatorControllers();
+                assetManager.ListAvailablePlayableGraphs();
+                MSLoader.Logger.LogWarning("Animaciones recargadas desde Resources.");
+            }
+            yPos += 40;
+
+            // Mostrar animaciones disponibles en Resources
+            foreach (var animationName in assetManager.resourcesAnimations.Keys)
+            {
+                if (GUI.Button(new Rect(0, yPos, 260, 20), animationName))
+                {
+                    MSLoader.Logger.LogWarning($"Cargando Animacion: {animationName}");
+                    // Obtener el AnimationClip correspondiente al nombre
+                    if (assetManager.resourcesAnimations.TryGetValue(animationName, out AnimationClip clip))
+                    {
+                        MSLoader.Logger.LogWarning($"Animacion encontrada: {clip.name}");
+
+                        // Reproducir la animación usando AnimationPlayer con la velocidad ajustada
+                        AnimationPlayer.PlayAnimation(animatorController.selectedAnimator, clip, null, speed);
+
+                        MSLoader.Logger.LogWarning($"Animacion Cargada: {animationName} con velocidad {speed}");
+                    }
+                    else
+                    {
+                        MSLoader.Logger.LogError($"No se encontró el AnimationClip para: {animationName}");
+                    }
+                }
+                yPos += 25;
             }
 
+            // Finalizar área desplazable
             GUI.EndScrollView();
         }
 
@@ -570,7 +740,22 @@ namespace MSALoader.Core
             if (newTime != animator.GetCurrentAnimatorStateInfo(0).normalizedTime)
             {
                 animator.Play(animator.GetCurrentAnimatorStateInfo(0).fullPathHash, 0, newTime);
+
                 animator.Update(0); // Forzar actualización
+
+                if (animator.playableGraph.IsValid())
+                {
+                    animator.playableGraph.Play();
+                }
+
+                // Actualizar el tiempo del PlayableGraph
+                //if (animator.playableGraph.TryGetValue(animator, out UnityEngine.Playables.PlayableGraph graph) && graph.IsValid())
+                //{
+                //    if (graph.GetRootPlayable(0).IsValid())
+                //    {
+                //        graph.GetRootPlayable(0).SetTime(newTime * clip.length);
+                //    }
+                //}
             }
             yPos += 30;
         }
@@ -583,7 +768,7 @@ namespace MSALoader.Core
             if (obj == null) return;
 
             // Actualizar el objeto seleccionado en la jerarquía
-            objectHierarchy.SelectObject(obj);
+            objectHierarchy.SelectObject(obj).GetAwaiter().GetResult();
 
             // Verificar si el objeto tiene un componente Animator
             MSLoader.Logger.LogWarning($"Obteniendo Animator de {obj.name}");
@@ -611,7 +796,7 @@ namespace MSALoader.Core
         private void DrawBundleLoader()
         {
             float screenWidth = Screen.width;
-            float panelWidth = 320;
+            float panelWidth = 400;
             float margin = 200;
             float xPos = screenWidth - panelWidth - margin;
             float yPos = 10;
@@ -620,22 +805,22 @@ namespace MSALoader.Core
             GUI.Box(new Rect(xPos, yPos, panelWidth, 250), "Bundle Manager");
             yPos += 30;
 
-            GUI.Label(new Rect(xPos + 10, yPos, 100, 20), "Nombre del Bundle:");
+            GUI.Label(new Rect(xPos + 10, yPos, 200, 20), "Nombre del Bundle:");
             bundleName = GUI.TextField(new Rect(xPos + 10, yPos + 20, elementWidth, 25), bundleName);
             yPos += 50;
 
-            float buttonWidth = (elementWidth - 10) / 2;
-            if (GUI.Button(new Rect(xPos + 10, yPos, buttonWidth, 30), "Cargar Escenas"))
+            float buttonWidth = elementWidth / 3; // Divide width by 3 for equal button sizes
+            if (GUI.Button(new Rect(xPos + 10, yPos, buttonWidth - 5, 30), "Cargar Escenas"))
             {
                 testHook.StartCoroutine(assetManager.LoadSceneBundle(bundleName)).GetAwaiter().GetResult();
             }
 
-            if (GUI.Button(new Rect(xPos + 20 + buttonWidth, yPos, buttonWidth, 30), "Cargar Assets"))
+            if (GUI.Button(new Rect(xPos + buttonWidth + 10, yPos, buttonWidth - 5, 30), "Cargar Assets"))
             {
                 testHook.StartCoroutine(assetManager.LoadAssetBundle(bundleName)).GetAwaiter().GetResult();
             }
 
-            if (GUI.Button(new Rect(xPos + 20 + buttonWidth, yPos, buttonWidth, 30), "Descargar Bundle"))
+            if (GUI.Button(new Rect(xPos + (buttonWidth * 2) + 10, yPos, buttonWidth - 5, 30), "Descargar Bundle"))
             {
                 testHook.StartCoroutine(assetManager.UnloadAssetBundle(bundleName)).GetAwaiter().GetResult();
             }
@@ -695,7 +880,7 @@ namespace MSALoader.Core
                         light.intensity = 1.5f;
                     }
 
-                    assetManager.InstantiateAssetFromBundle(bundleName, asset.Key).GetAwaiter().GetResult();
+                    testHook.StartCoroutine(assetManager.InstantiateAssetFromBundle(bundleName, asset.Key)).GetAwaiter().GetResult();
                 }
                 contentY += 22;
             }

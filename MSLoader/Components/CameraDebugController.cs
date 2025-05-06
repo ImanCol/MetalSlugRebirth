@@ -123,11 +123,10 @@ namespace MSALoader.Components
         /// <summary>
         /// Actualiza los controles de la cámara libre.
         /// </summary>
-        public static async Task UpdateFreeCamera()
+        public static void UpdateFreeCamera()
         {
             if (freeCamera == null || !freeCamera.enabled) return;
-
-            await HandleFreeCameraMovement();
+            HandleFreeCameraMovement().GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -223,9 +222,7 @@ namespace MSALoader.Components
             catch (Exception ex)
             {
                 Debug.LogError($"Error en movimiento cámara: {ex}");
-                await Task.Yield();
             }
-            await Task.Yield();
         }
 
         /// <summary>

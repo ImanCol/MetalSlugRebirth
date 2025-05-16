@@ -81,11 +81,11 @@ namespace MSALoader.Core
                 }
                 else
                 {
-                    DrawHierarchyPanel();
-                    DrawInspectorPanel();
-                    DrawCameraControlsPanel();
-                    DrawAnimationSelectorPanel();
-                    DrawBundleLoader(); // Nuevo panel de gestión de bundles 
+                    //DrawHierarchyPanel();
+                    //DrawInspectorPanel();
+                    //DrawCameraControlsPanel();
+                    //DrawAnimationSelectorPanel();
+                    //DrawBundleLoader(); // Nuevo panel de gestión de bundles 
                 }
             }
             catch (Exception ex)
@@ -93,6 +93,7 @@ namespace MSALoader.Core
                 MSLoader.Logger.LogError($"Error en DrawGUI: {ex}");
             }
         }
+
 
         /// <summary>
         /// Dibuja el panel de jerarquía.
@@ -171,6 +172,7 @@ namespace MSALoader.Core
             // Finalizar área desplazable
             GUI.EndScrollView();
         }
+        
 
         /// <summary>
         /// Calcula la altura total necesaria para mostrar todos los elementos del inspector.

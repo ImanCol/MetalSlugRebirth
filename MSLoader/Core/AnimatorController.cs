@@ -1,12 +1,15 @@
 using System.Collections;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Playables;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace MSALoader.Core
 {
     public class AnimatorController
     {
-        private Animator selectedAnimator;
+        public Animator selectedAnimator;
         private float animatorTime = 0f;
         private Dictionary<string, AnimationClip> externalAnimations = new Dictionary<string, AnimationClip>();
 
@@ -30,17 +33,17 @@ namespace MSALoader.Core
 
         public async Task ChangeAnimationFromBundle(AnimationClip animation)
         {
-            //if (animation is UnityEngine.AnimationClip animClip)
+            if (animation == null)
             {
-                MSLoader.Logger.LogWarning($"Nombre de animacion: {animation.name}");
-                MSLoader.Logger.LogWarning($"Duracion de animacion: {animation.length}");
-                MSLoader.Logger.LogWarning($"FrameRate de animacion: {animation.frameRate}");
-                await ApplyExternalAnimation(animation);
+                MSLoader.Logger.LogError("La animación cargada es nula.");
+                return;
             }
-            //else
-            {
-                //MSLoader.Logger.LogWarning("El objeto no es un AnimationClip válido.");
-            }
+
+            MSLoader.Logger.LogWarning($"Nombre de animación: {animation.name}");
+            MSLoader.Logger.LogWarning($"Duración de animación: {animation.length}");
+            MSLoader.Logger.LogWarning($"FrameRate de animación: {animation.frameRate}");
+
+            await ApplyExternalAnimation(animation);
         }
 
         /// <summary>
@@ -63,10 +66,52 @@ namespace MSALoader.Core
                 return;
             }
 
+
+            var clip = selectedAnimator.runtimeAnimatorController.animationClips.FirstOrDefault(x => x.name == animationName);
+            if (clip != null)
+            {
+                MSLoader.Logger.LogInfo($"AnimationPlayer PlayAnimation: {animationName}");
+
+                AnimationPlayer.PlayAnimation(selectedAnimator, clip);
+
+                //TestAnimPlayable(selectedAnimator, clip);
+            }
+            MSLoader.Logger.LogInfo($"Reproduciendo animación interna: {animationName}");
+            return;
+
+
             // Buscar en el controlador del Animator
             if (selectedAnimator.HasState(0, Animator.StringToHash(animationName)))
             {
-                selectedAnimator.Play(animationName, -1, 0f);
+
+                //selectedAnimator.Play(animationName, -1, 0f);
+                //var currentStateInfo = selectedAnimator.GetCurrentAnimatorStateInfo(0);
+                //if (currentStateInfo.length > 0)
+                //{
+                //    MSLoader.Logger.LogInfo($"Current animation state: {animationName}, normalized time: {currentStateInfo.normalizedTime}");
+                //}
+                //else
+                //{
+                //    MSLoader.Logger.LogWarning("Current animator state info is not valid");
+                //}
+                //
+                //// Verificar si hay un PlayableGraph activo
+                //PlayableGraph currentGraph = selectedAnimator.playableGraph;
+                //if (currentGraph.IsValid())
+                //{
+                //    MSLoader.Logger.LogInfo("Current PlayableGraph is valid");
+                //    currentGraph.Stop();
+                //}
+
+                //var clip = selectedAnimator.runtimeAnimatorController.animationClips.FirstOrDefault(x => x.name == animationName);
+                if (clip != null)
+                {
+                    MSLoader.Logger.LogInfo($"AnimationPlayer PlayAnimation: {animationName}");
+
+                    AnimationPlayer.PlayAnimation(selectedAnimator, clip);
+
+                    //TestAnimPlayable(selectedAnimator, clip);
+                }
                 MSLoader.Logger.LogInfo($"Reproduciendo animación interna: {animationName}");
             }
             else
@@ -74,6 +119,15 @@ namespace MSALoader.Core
                 MSLoader.Logger.LogWarning($"Animación no encontrada: {animationName}");
             }
         }
+
+
+        public static void TestAnimPlayable(Animator _anitor, AnimationClip _anim)
+        {
+            //Playable _playable = new();
+            //PlayableGraph playableGraph = new();
+            UnityEngine.Playables.AnimationPlayableUtilities.PlayClip(_anitor, _anim, out PlayableGraph _);
+        }
+
 
         /// <summary>
         /// Aplica una animación externa al Animator.
@@ -89,20 +143,30 @@ namespace MSALoader.Core
 
             try
             {
+                // Configurar el WrapMode para permitir bucles
+                //clip.wrapMode = WrapMode.Loop;
+
+                // Reproducir la animación usando el sistema de Playables
+                AnimationPlayer.PlayAnimation(selectedAnimator, clip);
+
+                MSLoader.Logger.LogInfo($"Animación externa aplicada: {clip.name}");
+
+                return;
+
                 // Verificar si el Animator tiene un RuntimeAnimatorController
                 if (selectedAnimator.runtimeAnimatorController == null)
                 {
                     MSLoader.Logger.LogWarning("Asignando un controlador base predeterminado.");
-                    RuntimeAnimatorController defaultController = Resources.Load<RuntimeAnimatorController>("DefaultAnimatorController");
-                    if (defaultController != null)
-                    {
-                        selectedAnimator.runtimeAnimatorController = defaultController;
-                    }
-                    else
-                    {
-                        MSLoader.Logger.LogError("No se encontró un controlador base predeterminado.");
-                        return;
-                    }
+                    //RuntimeAnimatorController defaultController = Resources.Load<RuntimeAnimatorController>("DefaultAnimatorController");
+                    //if (defaultController != null)
+                    //{
+                    //    selectedAnimator.runtimeAnimatorController = defaultController;
+                    //}
+                    //else
+                    //{
+                    //    MSLoader.Logger.LogError("No se encontró un controlador base predeterminado.");
+                    //    return;
+                    //}
                 }
 
                 // Crear un AnimatorOverrideController con el controlador base actual
@@ -124,13 +188,16 @@ namespace MSALoader.Core
                 // Reproducir la animación
                 selectedAnimator.Play(clip.name, -1, 0f);
                 MSLoader.Logger.LogInfo($"Animación externa aplicada: {clip.name}");
+
             }
             catch (Exception ex)
             {
                 MSLoader.Logger.LogError($"Error aplicando animación externa: {ex}");
             }
+
             await Task.Yield();
         }
+
 
         /// <summary>
         /// Carga animaciones externas desde un AssetBundle.
@@ -149,6 +216,7 @@ namespace MSALoader.Core
 
             foreach (var asset in bundle.LoadAllAssets())
             {
+                
                 if (asset is AnimationClip clip)
                 {
                     // Validar compatibilidad con el Animator seleccionado
@@ -311,6 +379,26 @@ namespace MSALoader.Core
             {
                 MSLoader.Logger.LogError($"Error aplicando AnimationClip: {ex}");
             }
+        }
+
+        public Dictionary<string, AnimationClip> animationClips = new Dictionary<string, AnimationClip>();
+
+        public void LoadAnimationsFromResources()
+        {
+            // Cargar todos los AnimationClips desde Resources
+            var clips = Resources.FindObjectsOfTypeAll<AnimationClip>()
+                                 .Where(clip => clip != null)
+                                 .ToList();
+
+            foreach (var clip in clips)
+            {
+                if (!animationClips.ContainsKey(clip.name))
+                {
+                    animationClips.Add(clip.name, clip);
+                }
+            }
+
+            MSLoader.Logger.LogInfo($"Se cargaron {animationClips.Count} animaciones desde Resources.");
         }
 
 

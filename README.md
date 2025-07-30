@@ -27,7 +27,7 @@ No es un parche o hack para alterar el modo online. Este mod está enfocado excl
 ## **🌟 Características Actuales**
 
 - **Compatibilidad Limitada:**  
-  El mod solo es compatible con una versión específica del juego. Asegúrate de tener la versión correcta antes de instalarlo.
+  Solo es compatible con una versión específica del juego.
 
 ---
 

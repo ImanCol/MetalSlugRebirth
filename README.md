@@ -1,28 +1,26 @@
-# **Metal Slug: Rebirth - Mod de Campañas Clásicas**
+# **Metal Slug: Rebirth - Clasicos con graficos frescos**
 
-![Metal Slug Logo](https://via.placeholder.com/800x200)  
-*(Inserta aquí una imagen relevante si tienes una URL disponible)*
+![Metal Slug Logo]()  
+
 
 ---
 
 ## **Descripción del Proyecto**
 
-Este proyecto es un mod para *Metal Slug by Timi* que permite revivir las campañas clásicas del juego en una versión independiente. Está diseñado para funcionar como una herramienta que preserva el legado del juego, permitiendo a los jugadores disfrutar de niveles personalizados y guardar partidas locales.
+Este proyecto es un mod para *Metal Slug: Awakening* actualmente es muy primitivo y en proceso de documentacion. Con el fin de estudio y conservar algo del juego en el futuro.
 
-No se trata de un parche o hack para alterar el modo online ni de modificar guardados de partidas originales. Este mod está enfocado exclusivamente en brindar una experiencia single-player local, compatible con versiones obsoletas del juego. **No funcionará en versiones más recientes**, y no proporcionamos soporte para dichas versiones.
+![screenshot_20250723_194834](https://github.com/user-attachments/assets/38bbf16d-9d10-4428-a933-8970a3f03902)
+![screenshot_20250723_195006](https://github.com/user-attachments/assets/c61500fb-2e31-4c0a-ad08-44c859d7bf64)
+![screenshot_20250723_194807](https://github.com/user-attachments/assets/aae8994f-12db-4a99-8892-c64fa684a022)
+![screenshot_20250723_194634](https://github.com/user-attachments/assets/af96b3d5-9e22-4079-9203-e70e3106ba25)
+
+https://www.youtube.com/watch?v=cvVCb82gkSg
 
 ---
 
 ## **⚠️ Advertencia Importante**
 
-- **Propósito del Mod:**  
-  Esta herramienta fue creada con el objetivo de traer las campañas clásicas de *Metal Slug* a una versión funcional y accesible usando el motor grafico de Unity. No tiene la intención de dañar, perjudicar o alterar el funcionamiento del modo online ni del guardado de partida en el juego oficial.
-
-- **Uso Responsable:**  
-  Se espera que este mod funcione únicamente en versiones obsoletas del videojuego. En caso de que alguien intente usarlo en versiones más recientes o con propósitos indebidos, **no somos responsables** y no brindaremos soporte.
-
-- **Multijugador Local:**  
-  Actualmente, estamos investigando la posibilidad de implementar un modo multijugador local para campañas. Esto permitirá disfrutar de la experiencia cooperativa sin depender de servidores externos.
+No es un parche o hack para alterar el modo online. Este mod está enfocado exclusivamente en brindar una experiencia single-player local, compatible con versiones obsoletas del juego. **No funcionará en versiones más recientes**.
 
 ---
 
@@ -30,6 +28,10 @@ No se trata de un parche o hack para alterar el modo online ni de modificar guar
 
 - **Compatibilidad Limitada:**  
   El mod solo es compatible con una versión específica del juego. Asegúrate de tener la versión correcta antes de instalarlo.
+
+---
+
+## **🚀 Características Futuras**
 
 - **Niveles Personalizados:**  
   Pronto podrás cargar niveles personalizados para expandir la experiencia del juego.
@@ -39,10 +41,6 @@ No se trata de un parche o hack para alterar el modo online ni de modificar guar
 
 - **Interfaz de Usuario:**  
   Herramientas básicas para inspeccionar objetos, controlar cámaras y gestionar animaciones dentro del juego.
-
----
-
-## **🚀 Características Futuras**
 
 - **Soporte para Contenido Adicional:**  
   Investigación en curso para permitir la carga de nuevos niveles, personajes y elementos personalizados.
@@ -72,17 +70,7 @@ Tu apoyo me motiva a seguir trabajando en este proyecto y asegurarme de que *Met
 
 ## **🛠️ Instalación**
 
-1. **Requisitos Previos:**  
-   - Asegúrate de tener instalada la versión compatible del juego.
-   - Descarga el mod desde el repositorio.
-
-2. **Pasos de Instalación:**  
-   - Copia los archivos del mod en la carpeta correspondiente del juego.
-   - Inicia el juego y verifica que el mod esté activo.
-
-3. **Notas Importantes:**  
-   - Realiza una copia de seguridad de tus archivos originales antes de instalar el mod.
-   - No intentes usar este mod en versiones más recientes del juego.
+En proceso...
 
 ---
 
@@ -111,8 +99,8 @@ Este proyecto está bajo la licencia [MIT](LICENSE). Puedes usar, modificar y di
 
 Si tienes preguntas o comentarios sobre el proyecto, puedes contactarnos a través de:
 
-- **Correo Electrónico:** *[tu correo aquí]*  
-- **Discord:** *[tu servidor de Discord aquí]*  
+- **Correo Electrónico:** *[](otaksuport@gmail.com)*  
+- **Discord:** *[](https://discord.gg/wFCUgWvSpM)*  
 
 ---
 
@@ -122,11 +110,5 @@ This plugin is inspired by [BepInEx.IL2CPP.AssemblyLoader](https://github.com/zo
 
 ---
 
-## 🌟 Nota Final
-
-Esperamos que este mod te permita disfrutar de las campañas clásicas de *Metal Slug* y revivir los momentos épicos del juego. ¡Gracias por tu apoyo y por ser parte de esta comunidad!
-
----
-
-> **Nota:** Este proyecto no está afiliado con los creadores originales de *Metal Slug by Timi*. Es un mod hecho por fans para fans.
+> **Nota:** Este proyecto no está afiliado con los creadores originales de *Metal Slug: Awakening*. Es un mod hecho por fans para fans.
 
